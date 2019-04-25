@@ -654,3 +654,35 @@ $ git push origin master
 ```
 
 将本地`master`分支的最新修改提交推送到github上去。
+
+## 2.从远程库克隆
+
+前面我们介绍了先有本地库，后有远程库，然后在关联远程库的情况。
+
+现在，假设我们从零开发一个新项目，那么最好的方式是先创建远程库，然后从远程库克隆。
+
+首先我们在github上创建一个新的远程仓库`gitskill`
+
+```shell
+$ git clone git@github.com:kuzan1994/gitskill.git
+Cloning into 'gitskill'...
+Enter passphrase for key '/Users/sui/.ssh/id_rsa': 
+remote: Enumerating objects: 3, done.
+remote: Counting objects: 100% (3/3), done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+Receiving objects: 100% (3/3), done.
+```
+
+我们对本地仓库中的`README.md`做修改并提交
+
+```shell
+$ vim README.md
+$ git add README.md
+$ git commit -m 'modify README'
+$ git push -u origin master
+```
+
+因为本地仓库本身就是从远程仓库克隆的，所以不需要在关联远程仓库。
+
+同时我们可以注意到，github给出的地址不止一个，还可以用`https://github.com/kuzan1994/gitskill.git`这样的地址，实际上，Git支持多种协议，默认使用`git://`使用SSH，但也可以使用`https`,使用`https`速度会慢一些。但是在某些只开放http端口的公司内部就无法使用`ssh`协议而只能用`https`。
+
