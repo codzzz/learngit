@@ -622,5 +622,35 @@ $ ssh-keygen -t rsa -C "youremail@example.com"
 
 首先在github上创建一个空的`learngit`仓库，在本地的`learngit`仓库下运行命令
 
+```shell
+$ git remote add origin git@github.com:kuzan1994/learngit.git
+```
 
+添加后，远程库的名字就是`origin`，这是Git默认的叫法，也可以改成别的，但是`origin`这个名字一看就知道是远程库
 
+下一步，就可以把本地库的所有内容推送到远程库上：
+
+```shell
+$ git push -u origin master
+Enter passphrase for key '/Users/sui/.ssh/id_rsa': 
+Counting objects: 3, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 7.10 KiB | 7.10 MiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To github.com:kuzan1994/learngit.git
+ * [new branch]      master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+```
+
+把本地库的内容推送到远程，用`git push`命令，实际上是把当前分支`master`推送到远程
+
+由于远程库是空的，我们第一次推送`master`分支时，加上了`-u`参数，Git不但会把本地`master`分支内容推送的远程新的`master`分支，还会把本地的`master`分支和远程`master`分支关联起来，在以后的推送或者拉取时就可以简化命令。
+
+从现在起只要本地做了提交，就可以通过命令：
+
+```shell
+$ git push origin master
+```
+
+将本地`master`分支的最新修改提交推送到github上去。
