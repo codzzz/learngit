@@ -686,3 +686,255 @@ $ git push -u origin master
 
 同时我们可以注意到，github给出的地址不止一个，还可以用`https://github.com/kuzan1994/gitskill.git`这样的地址，实际上，Git支持多种协议，默认使用`git://`使用SSH，但也可以使用`https`,使用`https`速度会慢一些。但是在某些只开放http端口的公司内部就无法使用`ssh`协议而只能用`https`。
 
+
+
+# 五、分支管理
+
+大多数的版本控制系统也有分支管理的功能，不过它们采取的是备份所有项目文件到指定的目录，所以根据项目文件数量和大小不同，可能花费的时间也会有相当大的差别，快则几秒，慢则几分钟，而Git分支的本质是一个指向`commit`对象的一个指针,所以Git分支的创建和销毁会非常廉价和迅速。
+
+## 1.创建与合并分支
+
+在前面的学习中我们知道Git把所有的提交串成一条时间线，这条时间线就是一个分支。截止到目前为止，只有一条时间线，在Git中这个分支叫做主分支，即`master`分支，`HEAD`严格来说不是指向提交，而是指向`master`，`master`才是指向提交的，所以，`HEAD`指向的就是当前分支。
+
+![](./images/1.png)
+
+现在我们先创建一个`dev`分支
+
+```shell
+$ git branch dev
+```
+
+这个时候Git会创建一个指向最新提交的一个指针
+
+![](./images/2.png)
+
+`git branch`命令创建分支时，不会把当前分支切换到新分支，所以当前分支还是`master`分支，`HEAD`还是指向`master`
+
+使用`git checkout <branch>`切换到指定分支
+
+```shell
+$ git checkout dev
+切换到分支 'dev'
+```
+
+![](./images/3.jpg)
+
+`git checkout`命令加上`-b`参数表示创建并切换，相当于一下两条命令
+
+```shell
+$ git branch dev
+$ git checkout dev
+```
+
+然后，用`git branch`命令查看当前分支
+
+```shell
+$ git branch
+* dev
+  master
+```
+
+`git branch`命令会列出所有分支，当前分支前面会标一个*号
+
+我们在`dev`分支上对readme.txt做修改添加一行
+
+```
+Creating a new branch is quick.
+```
+
+然后提交：
+
+```shell
+$ git add readme.txt
+$ git commit -m 'branch test'
+[dev 38486ad] branch test
+ 1 file changed, 1 insertion(+)
+```
+
+![](./images/4.jpg)
+
+现在我们切换回`master`分支查看`readme.txt`的内容
+
+```shell
+$ git checkout master
+切换到分支 'master'
+$ cat readme.txt
+Git is a distributed version control system.
+Git is free software under the GPL.
+Git has a mutable index called stage.
+Git tracks changes of files.
+```
+
+发现刚才添加的内容不见了！因为那个提交是在`dev`分支上，而`master`分支此刻的提交点并没有变：
+
+![](./images/5.jpg)
+
+现在我们把`dev`分支上修改的内容合并到`master`上改如何做呢？
+
+```shell
+$ git merge dev
+更新 9b44b75..38486ad
+Fast-forward
+ readme.txt | 1 +
+ 1 file changed, 1 insertion(+)
+$ cat readme.txt
+Git is a distributed version control system.
+Git is free software under the GPL.
+Git has a mutable index called stage.
+Git tracks changes of files.
+Creating a new branch is quick.
+```
+
+![](./images/6.jpg)
+
+`git merge`命令用于合并指定分支到当前分支。合并后，在查看`readme.txt`的内容发现，和`dev`分支修改的完全一样。
+
+注意到上面的`Fast-forward`信息，Git告诉我们，这次合并是`快进模式`，就是直接把`master`指向`dev`当前提交，所以合并速度会非常快。后面会学习到其他合并方式。
+
+如果要删除`dev`分支`git branch -d <branch-name>`
+
+```shell
+$ git branch -d dev
+已删除分支 dev（曾为 38486ad）。
+$ git branch
+* master
+```
+
+删除后我们发现现在只剩下了`master`主分支
+
+## 2.解决冲突
+
+使用Git做团队协作工具的同学一定都会遇到过，你把本地代码推送到远程仓库或者合并分支时，无法推送，提示冲突的情况。
+
+先准备一个新的`feature1`分支
+
+```shell
+$ git checkout -b feature1
+切换到一个新分支 'feature1'
+```
+
+修改`readme.txt`最后一行，改为：
+
+```
+Creating a new branch is quick AND simple.
+```
+
+在`feature1`分支上提交
+
+```shell
+$ git add readme.txt
+git commit -m 'AND simple'
+[feature1 05bfb3b] AND simple
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+切换到`master`分支：
+
+```shell
+$ git checkout master
+```
+
+在`master`分支上把`readme.txt`文件的最后一行改为：
+
+```
+Creating a new branch is quick & simple.
+```
+
+提交：
+
+```shell
+$ git add readme.txt 
+$ git commit -m '& simple'
+[master 5d176b3] & simple
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+现在，`master`分支和`feature1`分支各自都分别有新的提交，变成了这样：
+
+![](./images/7.png)
+
+这个时候，Git无法执行"快速合并"，只能试图把各自的修改合并起来，但是这种合并可能会引起冲突，试一下
+
+```shell
+$ git merge feature1
+自动合并 readme.txt
+冲突（内容）：合并冲突于 readme.txt
+自动合并失败，修正冲突然后提交修正的结果。
+```
+
+果然冲突了，Git告诉我们，`readme.txt`文件存在冲突，必须手动解决冲突后在提交。`git status`也可以告诉我们冲突的文件：
+
+```shell
+$ git status
+# 位于分支 master
+# 您有尚未合并的路径。
+#   （解决冲突并运行 "git commit"）
+#
+# 未合并的路径：
+#   （使用 "git add <file>..." 标记解决方案）
+#
+#	双方修改：     readme.txt
+#
+修改尚未加入提交（使用 "git add" 和/或 "git commit -a"）
+```
+
+查看`readme.txt`里面的内容
+
+```
+$ cat readme.txt
+Git is a distributed version control system.
+Git is free software under the GPL.
+Git has a mutable index called stage.
+Git tracks changes of files.
+<<<<<<< HEAD
+Creating a new branch is quick & simple.
+=======
+Creating a new branch is quick AND simple.
+>>>>>>> feature1
+```
+
+Git用`<<<<<<<`，`=======`，`>>>>>>>`标记出不同分支的内容，我们修改如下后保存：
+
+```
+Creating a new branch is quick and simple.
+```
+
+提交：
+
+```shell
+$ git add readme.txt 
+$ git commit -m 'comflict fixed'
+[master ac502c8] comflict fixed
+```
+
+现在`master`分支和`feature1`分支变成如下所示
+
+![](./images/8.png)
+
+用带参数的`git log`也可以看到分支的合并情况
+
+```shell
+$ git log --graph --pretty=oneline --abbrev-commit
+*   ac502c8 comflict fixed
+|\  
+| * 05bfb3b AND simple
+* | 5d176b3 & simple
+|/  
+* 38486ad branch test
+* 9b44b75 remove test.txt
+* f05b885 add test.txt
+* 80f9788 track changes
+* e3abc7d git tracks changes
+* 412631a understand how stage works
+* 282fd0e append GPL
+* 2853651 add distributed
+* 55bea42 add readme.txt file
+```
+
+最后，删除`feature1`分支
+
+```shell
+$ git branch -d feature1
+已删除分支 feature1（曾为 05bfb3b）。
+```
+
