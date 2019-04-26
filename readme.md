@@ -696,7 +696,7 @@ $ git push -u origin master
 
 在前面的学习中我们知道Git把所有的提交串成一条时间线，这条时间线就是一个分支。截止到目前为止，只有一条时间线，在Git中这个分支叫做主分支，即`master`分支，`HEAD`严格来说不是指向提交，而是指向`master`，`master`才是指向提交的，所以，`HEAD`指向的就是当前分支。
 
-![](./images/1.png)
+![](https://github.com/kuzan1994/learngit/blob/master/images/1.png)
 
 现在我们先创建一个`dev`分支
 
@@ -706,7 +706,7 @@ $ git branch dev
 
 这个时候Git会创建一个指向最新提交的一个指针
 
-![](./images/2.png)
+![](https://github.com/kuzan1994/learngit/blob/master/images/2.png)
 
 `git branch`命令创建分支时，不会把当前分支切换到新分支，所以当前分支还是`master`分支，`HEAD`还是指向`master`
 
@@ -717,7 +717,7 @@ $ git checkout dev
 切换到分支 'dev'
 ```
 
-![](./images/3.jpg)
+![](https://github.com/kuzan1994/learngit/blob/master/images/3.jpg)
 
 `git checkout`命令加上`-b`参数表示创建并切换，相当于一下两条命令
 
@@ -751,7 +751,7 @@ $ git commit -m 'branch test'
  1 file changed, 1 insertion(+)
 ```
 
-![](./images/4.jpg)
+![](https://github.com/kuzan1994/learngit/blob/master/images/4.jpg)
 
 现在我们切换回`master`分支查看`readme.txt`的内容
 
@@ -767,7 +767,7 @@ Git tracks changes of files.
 
 发现刚才添加的内容不见了！因为那个提交是在`dev`分支上，而`master`分支此刻的提交点并没有变：
 
-![](./images/5.jpg)
+![](https://github.com/kuzan1994/learngit/blob/master/images/5.jpg)
 
 现在我们把`dev`分支上修改的内容合并到`master`上改如何做呢？
 
@@ -785,7 +785,7 @@ Git tracks changes of files.
 Creating a new branch is quick.
 ```
 
-![](./images/6.jpg)
+![](https://github.com/kuzan1994/learngit/blob/master/images/6.jpg)
 
 `git merge`命令用于合并指定分支到当前分支。合并后，在查看`readme.txt`的内容发现，和`dev`分支修改的完全一样。
 
@@ -851,7 +851,7 @@ $ git commit -m '& simple'
 
 现在，`master`分支和`feature1`分支各自都分别有新的提交，变成了这样：
 
-![](./images/7.png)
+![](https://github.com/kuzan1994/learngit/blob/master/images/7.png)
 
 这个时候，Git无法执行"快速合并"，只能试图把各自的修改合并起来，但是这种合并可能会引起冲突，试一下
 
@@ -909,7 +909,7 @@ $ git commit -m 'comflict fixed'
 
 现在`master`分支和`feature1`分支变成如下所示
 
-![](./images/8.png)
+![](https://github.com/kuzan1994/learngit/blob/master/images/8.png)
 
 用带参数的`git log`也可以看到分支的合并情况
 
