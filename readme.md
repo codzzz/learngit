@@ -938,3 +938,378 @@ $ git branch -d feature1
 已删除分支 feature1（曾为 05bfb3b）。
 ```
 
+## 3.分支管理策略
+
+通常，合并分支时，如果可能，Git会用`Fast forward`模式，但这种模式下，删除分支后，会丢掉分支信息。
+
+如果要强制禁用`Fast forward`模式，Git就会在merage时生成一个新的commit,这样，从分支历史上就可以看出分支信息。
+
+下面我们使用`--no-ff`方式的`git merge`
+
+先创建并切换分支`dev`
+
+```shell
+$ git checkout -b dev
+切换到一个新分支 'dev'
+```
+
+修改`readme.txt`文件并提交
+
+```shell
+$ git add readme.txt 
+$ git commit -m "add merge"
+[dev f52c633] add merge
+ 1 file changed, 1 insertion(+)
+```
+
+现在，切换回`master`分支
+
+合并`dev`分支，注意`--no-ff`参数，表示禁用`Fast forword`
+
+```shell
+$ git checkout master
+$ git merge --no-ff -m 'merge with no-ff' dev
+Merge made by the 'recursive' strategy.
+ readme.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+因为本次合并要创建一个新的commit,所以加上`-m`参数，把commit描述写进去。
+
+合并后，我们可以用`git log`看看分支历史
+
+```shell
+$ git log --graph --pretty=oneline --abbrev-commit
+*   cb78c7c merge with no-ff
+|\  
+| * 41476f3 add merge
+|/  
+*   ac502c8 comflict fixed
+|\  
+| * 05bfb3b AND simple
+* | 5d176b3 & simple
+|/  
+* 38486ad branch test
+* 9b44b75 remove test.txt
+* f05b885 add test.txt
+* 80f9788 track changes
+* e3abc7d git tracks changes
+* 412631a understand how stage works
+* 282fd0e append GPL
+* 2853651 add distributed
+* 55bea42 add readme.txt file
+```
+
+可以看到，不使用`Fast forward`模式，merge后就像这样：
+
+![](https://github.com/kuzan1994/learngit/blob/master/images/9.png)
+
+### 分支策略
+
+在实际开发中，我们应该按照几个基本原则进行分支管理
+
+首先，`master`分支应该是非常稳定的，也就是仅用来发布新版本，平时不能在上面干活
+
+干活都在`dev`分支，也就是说，`dev`分支是不稳定的，到某个时候，比如比如1.0版本发布时，再把`dev`分支合并到`master`上，在`master`分支发布1.0版本；
+
+你和你的小伙伴们每个人都在`dev`分支上干活，每个人都有自己的分支，时不时地往`dev`分支上合并就可以了。
+
+## 4.bug分支
+
+现在假设我们在`dev`分支上对`readme.txt`内容进行了修改，此时我们并不想提交修改，同时`readme.txt`上有个bug,需要我们紧急修复。现在我们自然想到要创建一个`issue-101`来修复它，但是，当前`dev`分支上的工作还没有提交。
+
+```shell
+$ git status
+# 位于分支 dev
+# 尚未暂存以备提交的变更：
+#   （使用 "git add <file>..." 更新要提交的内容）
+#   （使用 "git checkout -- <file>..." 丢弃工作区的改动）
+#
+#	修改：      readme.txt
+#
+修改尚未加入提交（使用 "git add" 和/或 "git commit -a"）
+```
+
+Git提供了一个`stash`功能，可以把当前工作现场"储藏"起来，等以后恢复现场后继续工作
+
+```shell
+$ git stash
+Saved working directory and index state WIP on dev: 41476f3 add merge
+HEAD 现在位于 41476f3 add merge
+```
+
+用`git status`查看工作区，是干净的。
+
+假设我们想在`master`上修复，即在`master`上创建临时bug分支
+
+```shell
+$ git checkout master
+切换到分支 'master'
+$ git checkout -b issue-101
+切换到一个新分支 'issue-101'
+```
+
+现在修复bug，需要把“Git is free software ...”改为“Git is a free software ...”，然后提交：
+
+```shell
+$ git add readme.txt 
+$ git commit -m 'fix bug 101'
+[issue-101 a42f7e4] fix bug 101
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+现在切换回`master`上，合并分支
+
+```shell
+$ git checkout master
+$ git merge --no-ff -m 'merge bug fix 101' issue-101
+Merge made by the 'recursive' strategy.
+ readme.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git branch -d issue-101
+已删除分支 issue-101（曾为 a42f7e4）。
+```
+
+现在我们修复了`master`上的bug,是时候切换回`dev`分支上继续干活了
+
+```shell
+$ git checkout dev
+切换到分支 'dev'
+$ git status
+# 位于分支 dev
+无文件要提交，干净的工作区
+```
+
+现在工作区是干净的，那么怎么恢复刚才我们"储藏"的内容呢，用`git stash list`看看
+
+```shell
+$ git stash list
+stash@{0}: WIP on dev: 41476f3 add merge
+```
+
+工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，有两个办法：
+
+一是用`git stash appply`恢复，但恢复后，stash内容并不删除，你需要用`git stash drop`来删除
+
+另一种方式是用`git stash pop`，恢复的同时把stash内容也删了
+
+```shell
+$ git stash pop
+# 位于分支 dev
+# 尚未暂存以备提交的变更：
+#   （使用 "git add <file>..." 更新要提交的内容）
+#   （使用 "git checkout -- <file>..." 丢弃工作区的改动）
+#
+#	修改：      readme.txt
+#
+修改尚未加入提交（使用 "git add" 和/或 "git commit -a"）
+丢弃了 refs/stash@{0} (da1113b5c1664f177e58ed21dc296a05b55f3cdc)
+```
+
+查看`readme.txt`的内容发现又恢复过来了
+
+再用`git stash list`查看，就看不到任何stash内容了：
+
+```shell
+$ git stash list
+```
+
+你可以多次stash，恢复的时候，先用`git stash list`查看，然后恢复指定的stash，用命令：
+
+```shell
+$ git stash apply stash@{0}
+```
+
+## 5.Feature分支
+
+相信同学们在工作中一定都遇到过这个情况，突然接到一个新需求要做一个新功能，做到一半突然又说这个功能舍弃掉。在做这个新功能的时候为了不打扰主分支的功能，你会选择新建一个新的临时分支，当听到功能不做的时候，这时候临时分支就不会合并到主分支上，要删掉这个还没有被合并的临时分支改怎么做呢。我们先用`git branch -d <branch name>`试一下可不可以删除掉。
+
+```shell
+$ git checkout -b feature
+切换到一个新分支 'feature'
+$ touch hello.txt
+$ git add hello.txt
+$ git commit -m 'new feature add hello.txt'
+[feature 4541d87] new feature add hello.txt
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 hello.txt
+$ git checkout master
+error: 分支 'feature' 没有完全合并。
+如果您确认要删除它，执行 'git branch -D feature'。
+```
+
+发现Git提示`feature`分支没有完全合并，如果想要删除，执行`git branch -D feature`
+
+```shell
+$ git branch -D feature
+$ git branch
+  dev
+* master
+```
+
+发现`feature`分支确实删除掉了
+
+## 6.多人协作
+
+当你要从远程仓库克隆时，实际上Git自动把本地的`master`分支和远程的`master`分支对应起来，并且，远程仓库的默认名称是`origin`。
+
+要查看远程库的信息，用`git remote`
+
+```shell
+$ git remote
+origin
+```
+
+或者用`git remote -v`显示更详细的信息
+
+```shell
+$ git remote -v
+origin	git@github.com:kuzan1994/learngit.git (fetch)
+origin	git@github.com:kuzan1994/learngit.git (push)
+```
+
+上面显示了抓取和推送的`origin`地址。如果没有推送权限，就看不到push的地址
+
+### 推送分支
+
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
+
+```shell
+$ git push origin master
+```
+
+如果要推送其他分支，比如`dev`，就改成
+
+```shell
+$ git push origin dev
+```
+
+但是,并不是一定要把本地分支往远程推送，那么哪些分支需要推送，哪些不需要
+
+- `master`分支是主分支，因此要时刻与远程同步；
+- `dev`分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+- bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+- feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+
+### 抓取分支
+
+多人协作时，大家都会往`master`和`dev`分支上推送各自的修改
+
+现在，模拟一个你的小伙伴，可以在另一台电脑（注意要把SSH Key添加到GitHub）或者同一台电脑的另一个目录下克隆：
+
+```shell
+$ git clone git@github.com:kuzan1994/learngit.git
+Cloning into 'learngit'...
+Enter passphrase for key '/Users/sui/.ssh/id_rsa': 
+remote: Enumerating objects: 24, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (17/17), done.
+remote: Total 24 (delta 4), reused 24 (delta 4), pack-reused 0
+Receiving objects: 100% (24/24), 121.62 KiB | 155.00 KiB/s, done.
+Resolving deltas: 100% (4/4), done.
+```
+
+当你的小伙伴从远程库clone时，默认情况下，你的小伙伴只能看到本地的`master`分支。不信可以用`git branch`命令看看
+
+```shell
+$ git branch
+* master
+```
+
+```shell
+$ $ git checkout -b dev origin/dev
+```
+
+现在，他就可以在`dev`上继续修改，然后，时不时地把`dev`分支`push`到远程：
+
+```shell
+$ git add env.txt
+
+$ git commit -m "add env"
+[dev 7a5e5dd] add env
+ 1 file changed, 1 insertion(+)
+ create mode 100644 env.txt
+
+$ git push origin dev
+Counting objects: 3, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 308 bytes | 308.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To github.com:michaelliao/learngit.git
+   f52c633..7a5e5dd  dev -> dev
+```
+
+你的小伙伴已经向`origin/dev`分支推送了他的提交，而碰巧你也对同样的文件作了修改，并试图推送：
+
+```shell
+$ cat env.txt
+env
+$ git add env.txt 
+$ git commit -m 'add new env'
+[dev aabec0b] add new env
+ 1 file changed, 1 insertion(+)
+ create mode 100644 env.txt
+$ git push origin dev
+To github.com:kuzan1994/learngit.git
+ ! [rejected]        dev -> dev (non-fast-forward)
+error: failed to push some refs to 'git@github.com:kuzan1994/learngit.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+```
+
+推送失败，因为你的小伙伴的最新提交和你试图推送的提交有冲突，解决办法也很简单，Git已经提示我们，先用`git pull`把最新的提交从`origin/dev`抓下来，然后，在本地合并，解决冲突，再推送：
+
+```shell
+$ git pull
+From github.com:kuzan1994/learngit
+   81294fb..9d1c0b4  dev        -> origin/dev
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details.
+
+    git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+    git branch --set-upstream-to=origin/<branch> dev
+```
+
+`git pull`也失败了，原因是没有指定本地`dev`分支与远程`origin/dev`分支的链接，根据提示，设置`dev`和`origin/dev`的链接：
+
+```shell
+$ git branch --set-upstream-to=origin/dev dev
+Branch 'dev' set up to track remote branch 'dev' from 'origin'.
+```
+
+这回`git pull`成功，但是合并有冲突，需要手动解决，解决的方法和分支管理中的[解决冲突](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001375840202368c74be33fbd884e71b570f2cc3c0d1dcf000)完全一样。解决后，提交，再push：
+
+```shell
+$ git pull
+```
+
+这回`git pull`成功，但是合并有冲突，需要手动解决，解决的方法和分支管理中的[解决冲突](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001375840202368c74be33fbd884e71b570f2cc3c0d1dcf000)完全一样。解决后，提交，再push：
+
+```shell
+$ git commit -m 'fix env conflict'
+$ git push origin dev
+Counting objects: 4, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (4/4), 465 bytes | 465.00 KiB/s, done.
+Total 4 (delta 1), reused 0 (delta 0)
+remote: Resolving deltas: 100% (1/1), done.
+To github.com:kuzan1994/learngit.git
+   9d1c0b4..77e8007  dev -> dev
+```
+
+因此，多人协作的工作模式通常是这样：
+
+1. 首先，可以试图用`git push origin <branch-name>`推送自己的修改；
+2. 如果推送失败，则因为远程分支比你的本地更新，需要先用`git pull`试图合并；
+3. 如果合并有冲突，则解决冲突，并在本地提交；
+4. 没有冲突或者解决掉冲突后，再用`git push origin <branch-name>`推送就能成功！
+
+如果`git pull`提示`no tracking information`，则说明本地分支和远程分支的链接关系没有创建，用命令`git branch --set-upstream-to <branch-name> origin/<branch-name>`。
