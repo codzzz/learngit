@@ -1313,3 +1313,171 @@ To github.com:kuzan1994/learngit.git
 4. 没有冲突或者解决掉冲突后，再用`git push origin <branch-name>`推送就能成功！
 
 如果`git pull`提示`no tracking information`，则说明本地分支和远程分支的链接关系没有创建，用命令`git branch --set-upstream-to <branch-name> origin/<branch-name>`。
+
+
+
+# 六、标签管理
+
+Git的标签相当于版本库的快照，实际上就是指向某个commit的指针(和分支很像对不对，但是分支可以移动，标签不能移动)。所以创建和删除标签都是瞬间完成的。Git既然有commit了为什么还要引入tag呢，想象一下，如果你接到领导的一个要求把commit号是9d1c0b4...打包发布一下，这时一大串数字是不是很难记住，如果说把版本号是v1.1的发布，这就很容易记了。所以tag就是一个让人容易记住的有意义的名字，它是和某个commit绑定在一起的。
+
+## 1.创建标签
+
+在Git中打标签非常简单，首先，切换到需要打标签的分支上：
+
+```shell
+$ git checkout master
+```
+
+然后，使用命令`git tag <name>`就可以打一个新的标签：
+
+```shell
+$ git tag v1.0
+```
+
+可以用`git tag`查看所有标签
+
+```shell
+$ git tag
+v1.0
+```
+
+默认标签是打在最新提交的commit上的，如果想给以前提交的commit打标签又该怎么做呢
+
+方法就是找到历史的commit id，然后打上就好了
+
+```shell
+$ git log --pretty=oneline --abbrev-commit
+*   4b189f6 merge bug fix 101
+|\  
+| * a42f7e4 fix bug 101
+|/  
+*   cb78c7c merge with no-ff
+|\  
+| * 41476f3 add merge
+|/  
+*   ac502c8 comflict fixed
+|\  
+| * 05bfb3b AND simple
+* | 5d176b3 & simple
+|/  
+* 38486ad branch test
+* 9b44b75 remove test.txt
+* f05b885 add test.txt
+* 80f9788 track changes
+* e3abc7d git tracks changes
+* 412631a understand how stage works
+* 282fd0e append GPL
+* 2853651 add distributed
+* 55bea42 add readme.txt file
+```
+
+比方说要对`add merge`这次提交打标签，它对应的commit id是`41476f3`，敲入命令：
+
+```shell
+$ git tag v0.9 41476f3
+```
+
+再用命令`git tag`查看标签：
+
+```shell
+$ git tag
+v0.9
+v1.0
+```
+
+注意，标签不是按时间顺序列出，而是按字母排序的。可以用`git show <tagname>`查看标签信息：
+
+```shell
+$ git show v0.9
+commit 41476f32d6986de0ee51d52a087b29f2ea6b7e0e
+Author: root <916032798@qq.com>
+Date:   Fri Apr 26 15:47:24 2019 +0800
+
+    add merge
+
+diff --git a/readme.txt b/readme.txt
+index 01be954..1f07ebf 100644
+--- a/readme.txt
++++ b/readme.txt
+@@ -2,4 +2,4 @@ Git is a distributed version control system.
+ Git is free software under the GPL.
+ Git has a mutable index called stage.
+ Git tracks changes of files.
+-Creating a new branch is quick and simple.
++Creating a new branch is quick and simple add merge.
+```
+
+可以看到，`v0.9`确实打在`add merge`这次提交上
+
+还可以创建带有说明的标签，用`-a`指定标签名，用`-m`指定说明文字
+
+```shell
+$ git tag -a v0.1 -m 'version 0.1 released' 282fd0e
+```
+
+用命令`git show <tagname>`可以看到说明文字：
+
+```shell
+$ git show v0.1
+tag v0.1
+Tagger: root <916032798@qq.com>
+Date:   Sat Apr 27 11:07:18 2019 +0800
+
+version 0.1 released
+
+commit 282fd0e5dcc94fdf0eab50cdc1a615fa75e13b94
+Author: root <916032798@qq.com>
+Date:   Thu Apr 25 13:41:29 2019 +0800
+
+    append GPL
+    ....
+```
+
+注意：标签总是和某个commit挂钩。如果这个commit既出现在master分支，又出现在dev分支，那么在这两个分支上都可以看到这个标签。
+
+## 2.操作标签
+
+如果标签打错了，也可以删除：
+
+```shell
+$ git tag -d v0.1
+已删除 tag 'v0.1'（曾为 701e092）
+```
+
+因为创建的标签都之存储在本地，不会自动推送到远程。所以，打错的标签可以在本地安全删除。
+
+如果要推送某个标签到远程，使用命令`git push origin <tagname>`
+
+```shell
+$ git push origin v0.1
+Total 0 (delta 0), reused 0 (delta 0)
+To github.com:kuzan1994/learngit.git
+ * [new tag]         v0.1 -> v0.1
+```
+
+或者，一次性推送全部尚未推送到远程的本地标签：
+
+```shell
+$ git push origin --tags
+Total 0 (delta 0), reused 0 (delta 0)
+To github.com:kuzan1994/learngit.git
+ * [new tag]         v0.2 -> v0.2
+```
+
+如果标签已经推送到远程，要删除远程标签就麻烦一点，先从本地删除：
+
+```shell
+$ git tag -d v0.2
+Deleted tag 'v0.2' (was b967dd9)
+```
+
+然后，从远程删除，删除命令也是`push`：
+
+```shell
+$ git push origin :refs/tags/v0.2
+To github.com:kuzan1994/learngit.git
+ - [deleted]         v0.2
+```
+
+去github上查看发现v0.2的tag确实已经删除
+
