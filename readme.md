@@ -1481,3 +1481,4 @@ To github.com:kuzan1994/learngit.git
 
 去github上查看发现v0.2的tag确实已经删除
 
+如何向github上的开源项目贡献代码
