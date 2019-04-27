@@ -1481,3 +1481,31 @@ To github.com:kuzan1994/learngit.git
 
 去github上查看发现v0.2的tag确实已经删除
 
+
+
+# 七、往github上的开源项目提交代码
+
+不重复造轮子是很多程序员认可的软件开发理念，github上有很多热门的开源项目供我们参考和工作使用。很多小伙伴是不是也想参与那些热门的开源项目呢。那么我们如何参与开源项目中呢。
+
+首先需要访问你参与的项目，在它的主页有`fork`按钮，点击后就fork到你的github仓库下
+
+拿我的开源项目[learngit](<https://github.com/kuzan1994/learngit>)举例
+
+![](https://github.com/kuzan1994/learngit/blob/master/images/10.jpg)
+
+然后去你的账号下面就可以看到在你仓库下面已经有了`learngit`项目了，接着`clone`到你本地上进行修改
+
+```shell
+git clone git@github.com:<YourGithubName>/learngit.git
+```
+
+在本地你可以写一些你自己的Git学习和使用心得，然后推送到自己github远程库上。
+
+然后如果你想要我的项目中加上你自己的内容的话，就需要在github上`pull request`
+
+![](https://github.com/kuzan1994/learngit/blob/master/images/10.jpg)
+
+这样你就可以把你的`pull request`推送给我了，在我的项目下就能看到你的`pull request了，至于我会不会接受就要看心情了。
+
+好了，至此我们就可以通过这个流程了解到了如何参与github上别人的开源项目了。
+
